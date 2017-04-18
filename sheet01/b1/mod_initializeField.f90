@@ -7,28 +7,41 @@ module mod_initializeField
 contains
 
 	subroutine createField(matrix)
-		logical, dimension(:,:), pointer, intent(out) :: matrix
+		logical, dimension(:,:), pointer, intent(inout) :: matrix
+		!Zuweisen der Matrix
 		allocate(matrix(1:30,1:20))
+		!Belegen mit "false"
 		matrix = .false.
+
 	end subroutine
 
-	subroutine createFigures(blinker, toad, beacon)
-		logical, dimension(:,:), pointer, intent(out) :: blinker, &
-														 toad, beacon
+	subroutine createFigures(matrix)
+		logical, dimension(:,:), pointer, intent(inout) :: matrix
+		logical, dimension(:,:), pointer :: blinker, toad, beacon
+		integer :: positionX=4, positionY=3
+
+		! Zuweisen und Erstellen der Figur blinker
 		allocate(blinker(1:3,1:1))
 		blinker = .true.
-		
+
+		! Zuweisen und Erstellen der Figur toad
 		allocate(toad(1:4,1:2))
 		toad = .true.
 		toad(1,1) = .false.
 		toad(4,2) = .false.
-		
+
+		! Zuweisen und Erstellen der Figur beacon
 		allocate(beacon(1:6,1:6))
 		beacon = .false.
 		beacon(2:3,2) = .true.
 		beacon(2,3) = .true.
 		beacon(5,4) = .true.
 		beacon(4:5,5) = .true.
+
+		!Setzt Figuren auf die Matrix
+		matrix(positionX:,positionY:) = blinker
+		matrix(positionX+10:,positionY+5:) = toad
+		matrix(positionX+15:,positionY+10:) = beacon
 	end subroutine 
 
 	
