@@ -7,9 +7,9 @@ program poisson
 	implicit none
 	!
 	! parameter:
-	integer, parameter :: edgeLength = 17	! Kantenlänge der gesamten Matrix
+	integer, parameter :: edgeLength = 97	! Kantenlänge der gesamten Matrix
 	!Erlaubte outputSize-möglichkeiten (bei edgelength = 97): 3, 5, 9, 24, 47, 93, 185
-	integer, parameter :: outputSize = 17	! Kantenlänge der ausgegebenen Matrix
+	integer, parameter :: outputSize = 9	! Kantenlänge der ausgegebenen Matrix
 	integer, parameter :: loopSize = 100000	! Anzahl der Iterationen
 	! mpi:
 	integer :: mpi_rank, mpi_size, tag, status(MPI_STATUS_SIZE), mpi_ierr !MPI
