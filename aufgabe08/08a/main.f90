@@ -22,6 +22,9 @@ program poisson
 	integer :: offset ! = Index der ersten eigenen Zeile in Gesamtmatrix
 	logical :: checkExit =.False. ! Abbruchbedingung
 	integer :: i, j !Schleifenvariablen
+	
+	! performance measurement:
+	real :: startTime, endTime
 	! für Ausgabe	
 	integer :: interlines ! Abstand zwischen Zeilen, die ausgegeben werden sollen
 	integer :: currentRow = 1 ! Laufender Zähler für Ausgabe über alle Prozesse
@@ -31,34 +34,59 @@ program poisson
 	call MPI_INIT(mpi_ierr)
 	call MPI_COMM_SIZE(MPI_COMM_WORLD,mpi_size,mpi_ierr)
 	call MPI_COMM_RANK(MPI_COMM_WORLD,mpi_rank,mpi_ierr)
-
-	! Fehlerabfrage
 	mpi_master = 0
 	mpi_last = mpi_size - 1
-	if (mpi_rank == mpi_master) then
-		if (mod((edgeLength-1),(outputSize-1)) /= 0) then
-			write(*,*) "Die Variable outputSize muss so gewählt werden, dass bei der ", & 
-			&		  "Rechnung [edgeLength-1 / ( outputSize - 1 )] kein Rest entsteht"
-			stop
-		endif
-	endif
-
+	
+	! master:
+    if (mpi_rank == mpi_master) then
+		! Für Zeitmessung:
+        call cpu_time(starttime)
+		! Fehlerabfrage für ungültige Outputsizes
+        if (mod((edgeLength-1),(outputSize-1)) /= 0) then
+            write(*,*) "Die Variable outputSize muss so gewählt werden, dass bei der ", & 
+            &          "Rechnung [edgeLength-1 / ( outputSize - 1 )] kein Rest entsteht"
+            stop
+        endif
+    endif
+	
 	! Initialisiert Variablen zur Orientierung in Gesamtmatrix
 	call initLineCount(lineCount, offset, edgeLength, mpi_size, mpi_rank)
 	! Eigene Matrix nach Bedarf
 	call allocateMatrix(matrix, mpi_rank, mpi_size, lineCount, edgeLength)
 	! Startbelegung der Matrix
 	call initializeMatrix(matrix, mpi_rank, mpi_size, lineCount, offset)
-	! Warte, bis alles belegt ist
-	
+		
+	! PROLOG:
+    if (mpi_rank == mpi_master) then
+        print *, ""
+        print *, "Initiale Matrix"
+    endif
+    call printMatrix(matrix, interlines, offset, lineCount, mpi_rank, mpi_master, mpi_last, mpi_ierr)
+
 	!calculating:
 	do i=1,(loopSize + mpi_last)
 		call calculate(matrix, mpi_rank, mpi_master, mpi_last, mpi_ierr, loopSize, i)
 	end do
 	
-	! PROLOG
-	call printMatrix(matrix, interlines, offset, lineCount, mpi_rank, mpi_master, mpi_last, mpi_ierr)
-	
+	! EPILOG
+    if (mpi_rank == mpi_master) then
+        ! Headline
+        print *, ""
+        print *, "Matrix nach", loopSize, "Durchläufen"
+    endif
+    call printMatrix(matrix, interlines, offset, lineCount, mpi_rank, mpi_master, mpi_last, mpi_ierr)
+    
+    ! Performance:
+    if (mpi_rank == mpi_master) then
+        call cpu_time(endtime)
+    endif
+    
+    call mpi_barrier(mpi_comm_world, mpi_ierr)
+    if (mpi_rank == mpi_master) then
+        print *, ""
+        print *, "Zeit für diese Rechnung:", (endtime - starttime), "Sekunden"
+    endif
+
 	! FINAL
 	deallocate(matrix)
 	call MPI_FINALIZE(mpi_ierr)
