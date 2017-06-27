@@ -42,14 +42,10 @@ MODULE finalize
 		integer :: status(MPI_STATUS_SIZE)
 		double precision, dimension(:,:), allocatable, intent(in) :: matrix
 		integer, intent(in) :: interlines, offset, lineCount ! Abstand zwischen Zeilen, die ausgegeben werden sollen und offset
-		integer :: currentRow = 1 ! Laufender Zähler für Ausgabe über alle Prozesse
-
+		integer :: currentRow ! Laufender Zähler für Ausgabe über alle Prozesse
+		currentRow = 1
 
 		if (mpi_rank == mpi_master) then
-			! Prolog:
-			print *, ""
-			print *, "Fertige Matrix"
-			! Dann alles andere (eventuell)
 			do while (currentRow < (offset + lineCount))
 				call printRow(matrix, currentRow, interlines)
 				currentRow = currentRow + interlines
