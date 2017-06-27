@@ -16,7 +16,6 @@ program poisson
 	integer :: mpi_master, mpi_last ! Besondere Prozess IDs
 	! data:
 	double precision, dimension(:,:), allocatable :: matrix ! or whatever fits
-	!double precision, dimension(:,:), allocatable :: temp
 	! auxiliary
 	integer :: lineCount ! die Anzahl der Zeilen in der einzelnen Matrix
 	integer :: offset ! = Index der ersten eigenen Zeile in Gesamtmatrix
@@ -37,6 +36,7 @@ program poisson
 	mpi_master = 0
 	mpi_last = mpi_size - 1
 	
+	
 	! master:
     if (mpi_rank == mpi_master) then
 		! Für Zeitmessung:
@@ -48,14 +48,14 @@ program poisson
             stop
         endif
     endif
-	
+
 	! Initialisiert Variablen zur Orientierung in Gesamtmatrix
 	call initLineCount(lineCount, offset, edgeLength, mpi_size, mpi_rank)
 	! Eigene Matrix nach Bedarf
 	call allocateMatrix(matrix, mpi_rank, mpi_size, lineCount, edgeLength)
 	! Startbelegung der Matrix
-	call initializeMatrix(matrix, mpi_rank, mpi_size, lineCount, offset)
-		
+	call initializeMatrix(matrix, mpi_rank, mpi_size, lineCount, offset)	
+	
 	! PROLOG:
     if (mpi_rank == mpi_master) then
         print *, ""
@@ -64,8 +64,8 @@ program poisson
     call printMatrix(matrix, interlines, offset, lineCount, mpi_rank, mpi_master, mpi_last, mpi_ierr)
 
 	!calculating:
-	do i=1,(loopSize + mpi_last)
-		call calculate(matrix, mpi_rank, mpi_master, mpi_last, mpi_ierr, loopSize, i)
+	do i=1,loopSize
+		call calculate(matrix, mpi_rank, mpi_master, mpi_last, mpi_ierr)
 	end do
 	
 	! EPILOG
